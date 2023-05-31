@@ -20,7 +20,7 @@ class StorageClient:
         logging.info(f'Try to connect to {self.__server_address}...')
 
         if self.try_connect():
-            logging.info(f'Successful connect! Your address: {self.__server_address}')
+            logging.info(f'Successful connected! Your address: {self.__address}')
 
             running = True
 
@@ -46,14 +46,22 @@ class StorageClient:
 
             response_header_data = self.__client_socket.recv(StreamConfiguration.HEADER_SIZE)
 
+            logging.debug(f'Response header data: {response_header_data}')
+
             response_header = Header.decode(response_header_data)
 
+            logging.debug(f'Response header: {response_header}')
+
             if response_header.get_type() == PackageType.HOST_SUCCESSFUL_CONNECT_RESPONSE:
+                logging.debug(f'Connection to {self.__server_address}...')
+
                 package = response_header.load_package(self.__client_socket)
 
                 logging.debug(f'Response package: {package}')
 
                 json_response: dict = json.loads(package.to_json())
+
+                logging.debug(f'Json response: {json_response}')
 
                 host = json_response['host']
                 port = json_response['port']
