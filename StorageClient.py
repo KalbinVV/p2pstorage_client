@@ -1,11 +1,8 @@
-import json
 import logging
 import socket
 
 from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
-from p2pstorage_core.server import StreamConfiguration
-from p2pstorage_core.server.Header import Header
-from p2pstorage_core.server.Package import PackageType
+from p2pstorage_core.server.Package import PackageType, ConnectionRequestPackage, Package, ConnectionResponsePackage
 
 
 class StorageClient:
@@ -20,13 +17,13 @@ class StorageClient:
         logging.info(f'Try to connect to {self.__server_address}...')
 
         if self.try_connect():
-            logging.info(f'Successful connected! Your address: {self.__address}')
+            logging.info(f'Successful connected to {self.__server_address}!')
 
             running = True
 
             while running:
                 try:
-                    header_data = self.__client_socket.recv(StreamConfiguration.HEADER_SIZE)
+                    pass
                 except KeyboardInterrupt:
                     running = False
 
@@ -38,39 +35,18 @@ class StorageClient:
     def try_connect(self) -> bool:
         try:
             self.__client_socket.connect(self.__server_address)
-            connection_header = Header(0, PackageType.HOST_CONNECT_REQUEST,
-                                       SocketAddress('', 0),
-                                       self.__server_address)
 
-            self.__client_socket.send(connection_header.encode())
+            connect_request_package = ConnectionRequestPackage()
 
-            response_header_data = self.__client_socket.recv(StreamConfiguration.HEADER_SIZE)
+            connect_request_package.send(self.__client_socket)
 
-            logging.debug(f'Response header data: {response_header_data}')
+            connect_response_package: ConnectionResponsePackage = Package.recv(self.__client_socket)
 
-            response_header = Header.decode(response_header_data)
+            if not connect_response_package.is_connection_approved():
+                logging.warning(f'Eject reason: {connect_response_package.get_reason()}')
+                return False
 
-            logging.debug(f'Response header: {response_header}')
-
-            if response_header.get_type() == PackageType.HOST_SUCCESSFUL_CONNECT_RESPONSE:
-                logging.debug(f'Connection to {self.__server_address}...')
-
-                package = response_header.load_package(self.__client_socket)
-
-                logging.debug(f'Response package: {package}')
-
-                json_response: dict = json.loads(package.to_json())
-
-                logging.debug(f'Json response: {json_response}')
-
-                host = json_response['host']
-                port = json_response['port']
-
-                self.__address = SocketAddress(host, port)
-
-                return True
+            return True
 
         except ConnectionError:
             return False
-
-        return False
