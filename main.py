@@ -30,7 +30,4 @@ def user_input_handler(storage_client: StorageClient) -> None:
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
+    main()
