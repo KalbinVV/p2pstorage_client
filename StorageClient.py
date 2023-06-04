@@ -74,5 +74,5 @@ class StorageClient:
 
             logging.debug(f'Package from server: {package}')
 
-            from PackageHandlers import handle_package
+            from PackagesHandlers import handle_package
             handle_package(package, self)

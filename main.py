@@ -22,7 +22,7 @@ def user_input_handler(storage_client: StorageClient) -> None:
         command_name = command_parts[0]
         args = command_parts[1:]
 
-        from Commands import handle_command
+        from CommandsHandlers import handle_command
         handle_command(storage_client, command_name, args)
 
         if command_name == 'q':

@@ -1,6 +1,4 @@
-import logging
-
-from p2pstorage_core.server.Package import Package, PackageType
+from p2pstorage_core.server.Package import Package
 
 from StorageClient import StorageClient
 

@@ -1,8 +1,9 @@
 import logging
+import os.path
 import threading
 
 from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
-from p2pstorage_core.server.Package import ConnectionLostPackage
+from p2pstorage_core.server.Package import ConnectionLostPackage, NewFilePackage
 
 from StorageClient import StorageClient
 
@@ -15,6 +16,8 @@ def handle_command(client: StorageClient, command_name: str, args: list[str]) ->
             handle_connection_lost_command(client)
         case 'disconnect':
             handle_connection_lost_command(client)
+        case 'send_file':
+            handle_send_file_command(client, args)
 
 
 def handle_connect_command(client: StorageClient, args: list[str]) -> None:
@@ -33,3 +36,17 @@ def handle_connection_lost_command(client: StorageClient) -> None:
     connection_lost_package.send(client.get_socket())
 
     logging.info(f'Leaving {client.get_server_address()} server...')
+
+
+def handle_send_file_command(client: StorageClient, args: list[str]) -> None:
+    file_path = args[0]
+
+    if not os.path.exists(file_path):
+        logging.error('Invalid file path')
+        return
+
+    file_size = os.stat(file_path).st_size
+    file_name = os.path.basename(file_path)
+
+    new_file_package = NewFilePackage(file_name, file_size)
+    new_file_package.send(client.get_socket())
