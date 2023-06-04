@@ -5,6 +5,8 @@ from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
 from p2pstorage_core.server.Exceptions import EmptyHeaderException
 from p2pstorage_core.server.Package import PackageType, ConnectionRequestPackage, Package, ConnectionResponsePackage
 
+from PackageHandlers import handle_package
+
 
 class StorageClient:
     def __init__(self):
@@ -69,8 +71,4 @@ class StorageClient:
 
             logging.debug(f'Package from server: {package}')
 
-            if package.get_type() == PackageType.CONNECTION_LOST:
-                reason = package.get_data()
-
-                logging.info(f'Connection from server lost: {reason}')
-                self.set_running(False)
+            handle_package(package, self)
