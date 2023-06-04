@@ -12,29 +12,24 @@ def main():
 
     storage_client = StorageClient()
 
-    server_address = input('Enter server address (host:port): ')
-
-    splitted_server_address = server_address.split(':')
-    host, port = splitted_server_address[0], int(splitted_server_address[1])
-
-    user_input_thread: Optional[threading.Thread] = None
-
-    try:
-        user_input_thread = threading.Thread(target=user_input_handler, args=(storage_client,))
-        user_input_thread.start()
-
-        storage_client.run(SocketAddress(host, port))
-    except KeyboardInterrupt:
-        pass
-
-    logging.info('Stopping...')
+    user_input_handler(storage_client)
 
 
 def user_input_handler(storage_client: StorageClient) -> None:
-    while storage_client.is_running():
-        print('!')
+    running = True
+
+    while running:
         user_input = input()
-        print(user_input)
+
+        command_parts = user_input.split()
+
+        command_name = command_parts[0]
+        args = command_parts[1:]
+
+        print(command_name, args)
+
+        from Commands import handle_command
+        handle_command(storage_client, command_name, args)
 
 
 if __name__ == '__main__':
