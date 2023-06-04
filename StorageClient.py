@@ -3,9 +3,7 @@ import socket
 
 from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
 from p2pstorage_core.server.Exceptions import EmptyHeaderException
-from p2pstorage_core.server.Package import PackageType, ConnectionRequestPackage, Package, ConnectionResponsePackage
-
-from PackageHandlers import handle_package
+from p2pstorage_core.server.Package import ConnectionRequestPackage, Package, ConnectionResponsePackage
 
 
 class StorageClient:
@@ -71,4 +69,5 @@ class StorageClient:
 
             logging.debug(f'Package from server: {package}')
 
+            from PackageHandlers import handle_package
             handle_package(package, self)
