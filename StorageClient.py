@@ -1,6 +1,5 @@
 import logging
 import socket
-import threading
 
 from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
 from p2pstorage_core.server.Exceptions import EmptyHeaderException
@@ -16,6 +15,9 @@ class StorageClient:
         self.__running = False
 
         self.__server_address = '', 0
+
+    def get_socket(self):
+        return self.__client_socket
 
     def is_running(self) -> bool:
         return self.__running
@@ -44,9 +46,7 @@ class StorageClient:
 
             connect_request_package = ConnectionRequestPackage()
 
-            connect_request_package.send(self.__client_socket)
-
-            connect_response_package: ConnectionResponsePackage = Package.recv(self.__client_socket)
+            connect_response_package: ConnectionResponsePackage = connect_request_package.send(self.__client_socket)
 
             if not connect_response_package.is_connection_approved():
                 logging.warning(f'Eject reason: {connect_response_package.get_reason()}')
