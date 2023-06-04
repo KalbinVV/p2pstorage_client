@@ -1,8 +1,4 @@
 import logging
-import threading
-from typing import Optional
-
-from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
 
 from StorageClient import StorageClient
 
@@ -26,10 +22,11 @@ def user_input_handler(storage_client: StorageClient) -> None:
         command_name = command_parts[0]
         args = command_parts[1:]
 
-        print(command_name, args)
-
         from Commands import handle_command
         handle_command(storage_client, command_name, args)
+
+        if command_name == 'q':
+            running = False
 
 
 if __name__ == '__main__':

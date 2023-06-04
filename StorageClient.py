@@ -8,13 +8,16 @@ from p2pstorage_core.server.Package import ConnectionRequestPackage, Package, Co
 
 class StorageClient:
     def __init__(self):
-        self.__client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.__client_socket = None
 
         self.__address = None
 
         self.__running = False
 
-        self.__server_address = '', 0
+        self.__server_address = None
+
+    def get_server_address(self):
+        return self.__server_address
 
     def get_socket(self):
         return self.__client_socket
@@ -42,11 +45,13 @@ class StorageClient:
 
     def try_connect(self) -> bool:
         try:
+            self.__client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__client_socket.connect(self.__server_address)
 
             connect_request_package = ConnectionRequestPackage()
 
-            connect_response_package: ConnectionResponsePackage = connect_request_package.send(self.__client_socket)
+            connect_request_package.send(self.__client_socket)
+            connect_response_package: ConnectionResponsePackage = Package.recv(self.__client_socket)
 
             if not connect_response_package.is_connection_approved():
                 logging.warning(f'Eject reason: {connect_response_package.get_reason()}')

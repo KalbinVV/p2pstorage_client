@@ -1,3 +1,4 @@
+import logging
 import threading
 
 from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
@@ -11,7 +12,9 @@ def handle_command(client: StorageClient, command_name: str, args: list[str]) ->
         case 'connect':
             handle_connect_command(client, args)
         case 'q':
-            handle_quit_command(client)
+            handle_connection_lost_command(client)
+        case 'disconnect':
+            handle_connection_lost_command(client)
 
 
 def handle_connect_command(client: StorageClient, args: list[str]) -> None:
@@ -20,9 +23,13 @@ def handle_connect_command(client: StorageClient, args: list[str]) -> None:
 
     addr = SocketAddress(host, port)
 
-    connection_thread = threading.Thread(target=client.run, args=(addr,))
+    connection_thread = threading.Thread(target=client.run, args=(addr,), daemon=True)
     connection_thread.start()
 
 
-def handle_quit_command(client: StorageClient) -> None:
+def handle_connection_lost_command(client: StorageClient) -> None:
     connection_lost_package = ConnectionLostPackage()
+
+    connection_lost_package.send(client.get_socket())
+
+    logging.info(f'Leaving {client.get_server_address()} server...')
