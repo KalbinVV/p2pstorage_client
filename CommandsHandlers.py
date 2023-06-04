@@ -3,7 +3,7 @@ import os.path
 import threading
 
 from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
-from p2pstorage_core.server.Package import ConnectionLostPackage, NewFilePackage
+from p2pstorage_core.server.Package import ConnectionLostPackage, NewFileRequestPackage
 
 from StorageClient import StorageClient
 
@@ -31,11 +31,12 @@ def handle_connect_command(client: StorageClient, args: list[str]) -> None:
 
 
 def handle_connection_lost_command(client: StorageClient) -> None:
-    connection_lost_package = ConnectionLostPackage()
+    if client.is_running():
+        connection_lost_package = ConnectionLostPackage()
 
-    connection_lost_package.send(client.get_socket())
+        connection_lost_package.send(client.get_socket())
 
-    logging.info(f'Leaving {client.get_server_address()} server...')
+        logging.info(f'Leaving {client.get_server_address()} server...')
 
 
 def handle_send_file_command(client: StorageClient, args: list[str]) -> None:
@@ -48,5 +49,5 @@ def handle_send_file_command(client: StorageClient, args: list[str]) -> None:
     file_size = os.stat(file_path).st_size
     file_name = os.path.basename(file_path)
 
-    new_file_package = NewFilePackage(file_name, file_size)
+    new_file_package = NewFileRequestPackage(file_name, file_size)
     new_file_package.send(client.get_socket())
