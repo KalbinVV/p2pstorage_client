@@ -4,6 +4,8 @@ import threading
 from typing import Callable
 
 from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
+from p2pstorage_core.server.Crypt import get_hash_of_file
+from p2pstorage_core.server.FileInfo import FileInfo
 from p2pstorage_core.server.Package import ConnectionLostPackage, NewFileRequestPackage, HostsListRequestPackage
 
 from StorageClient import StorageClient
@@ -78,8 +80,9 @@ def handle_send_file_command(client: StorageClient, args: list[str]) -> None:
 
     file_size = os.stat(file_path).st_size
     file_name = os.path.basename(file_path)
+    file_hash = get_hash_of_file(file_path)
 
-    new_file_package = NewFileRequestPackage(file_name, file_size)
+    new_file_package = NewFileRequestPackage(FileInfo(file_name, file_size, file_hash))
     new_file_package.send(client.get_socket())
 
 
