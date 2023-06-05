@@ -62,16 +62,3 @@ def handle_hosts_list_command(client):
 
     hosts_list_request = HostsListRequestPackage()
     hosts_list_request.send(host_socket)
-
-    hosts_list_response: HostsListResponsePackage = Package.recv(host_socket)
-
-    if hosts_list_response.is_response_approved():
-        hosts = hosts_list_response.get_hosts()
-
-        logging.info('Connected hosts: ')
-
-        for host in hosts:
-            logging.info(host)
-
-    else:
-        logging.error(f'Can\' get list of hosts: {hosts_list_response.get_reject_reason()}')
