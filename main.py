@@ -1,12 +1,23 @@
 import logging
 
+from CommandsHandlers import init_commands, handle_command
 from StorageClient import StorageClient
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, filename='logs.log')
+
+    # define a Handler which writes INFO messages or higher to the sys.stderr
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    # add the handler to the root logger
+    logging.getLogger('').addHandler(console)
 
     storage_client = StorageClient()
+
+    init_commands()
+
+    logging.info('Client is started, please enter command!')
 
     user_input_handler(storage_client)
 
@@ -22,7 +33,6 @@ def user_input_handler(storage_client: StorageClient) -> None:
         command_name = command_parts[0]
         args = command_parts[1:]
 
-        from CommandsHandlers import handle_command
         handle_command(storage_client, command_name, args)
 
         if command_name == 'q':
