@@ -48,7 +48,7 @@ class StorageClient:
             self.__client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__client_socket.connect(self.__server_address)
 
-            connect_request_package = ConnectionRequestPackage()
+            connect_request_package = ConnectionRequestPackage(socket.gethostname())
 
             connect_request_package.send(self.__client_socket)
             connect_response_package: ConnectionResponsePackage = Package.recv(self.__client_socket)
