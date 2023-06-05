@@ -3,11 +3,13 @@ import os.path
 import threading
 
 from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
-from p2pstorage_core.server.Package import ConnectionLostPackage, NewFileRequestPackage
+from p2pstorage_core.server.Package import ConnectionLostPackage, NewFileRequestPackage, HostsListRequestPackage, \
+    Package, HostsListResponsePackage
 
 from StorageClient import StorageClient
 
 
+# TODO: Improve this
 def handle_command(client: StorageClient, command_name: str, args: list[str]) -> None:
     match command_name:
         case 'connect':
@@ -18,6 +20,8 @@ def handle_command(client: StorageClient, command_name: str, args: list[str]) ->
             handle_connection_lost_command(client)
         case 'send_file':
             handle_send_file_command(client, args)
+        case 'hosts':
+            handle_hosts_list_command(client)
 
 
 def handle_connect_command(client: StorageClient, args: list[str]) -> None:
@@ -51,3 +55,23 @@ def handle_send_file_command(client: StorageClient, args: list[str]) -> None:
 
     new_file_package = NewFileRequestPackage(file_name, file_size)
     new_file_package.send(client.get_socket())
+
+
+def handle_hosts_list_command(client):
+    host_socket = client.get_socket()
+
+    hosts_list_request = HostsListRequestPackage()
+    hosts_list_request.send(host_socket)
+
+    hosts_list_response: HostsListResponsePackage = Package.recv(host_socket)
+
+    if hosts_list_response.is_response_approved():
+        hosts = hosts_list_response.get_hosts()
+
+        logging.info('Connected hosts: ')
+
+        for host in hosts:
+            logging.info(host)
+
+    else:
+        logging.error(f'Can\' get list of hosts: {hosts_list_response.get_reject_reason()}')
