@@ -1,7 +1,10 @@
 import logging
 import os.path
+import socket
+import threading
 
 import p2pstorage_core.server.Package as Pckg
+from p2pstorage_core.server import StreamConfiguration
 
 from StorageClient import StorageClient
 
@@ -17,7 +20,11 @@ def handle_package(package: Pckg.Package, storage_client: StorageClient) -> None
         case Pckg.PackageType.FILES_LIST_RESPONSE:
             handle_files_list_response(package)
         case Pckg.PackageType.FILE_CONTAINS_REQUEST:
-            handle_contains_file_request(package)
+            handle_contains_file_request(package, storage_client)
+        case Pckg.PackageType.FILE_TRANSACTION_START_REQUEST:
+            handle_transaction_start_request(package, storage_client)
+        case Pckg.PackageType.FILE_TRANSACTION_START_RESPONSE:
+            handle_transaction_start_response(package, storage_client)
 
 
 def handle_connection_lost(package: Pckg.Package, storage_client: StorageClient) -> None:
@@ -71,8 +78,70 @@ def handle_contains_file_request(package: Pckg.Package, client: StorageClient) -
 
     file_contains = False
 
-    if os.path.exists(contains_file_request.get_file_path()):
+    files_manager = client.get_files_manager()
+    file_path = files_manager.get_file_path_by_name(contains_file_request.get_file_name())
+
+    if os.path.exists(file_path):
         file_contains = True
 
     contains_file_response = Pckg.FileContainsResponsePackage(file_contains)
     contains_file_response.send(host_socket)
+
+
+def handle_transaction_start_request(package: Pckg.Package, storage_client: StorageClient):
+    transaction_start_request = Pckg.FileTransactionStartRequestPackage.from_abstract(package)
+
+    file_name = transaction_start_request.get_file_name()
+    files_manager = storage_client.get_files_manager()
+
+    if not files_manager.is_contains_file(file_name):
+        transaction_start_response = Pckg.FileTransactionStartResponsePackage(sender_addr=None,
+                                                                              file_name='',
+                                                                              transaction_started=False,
+                                                                              reject_reason='File not exists!')
+        transaction_start_response.send(storage_client.get_socket())
+    else:
+        logging.info(f'Transaction started: {file_name}')
+
+        transaction_thread = threading.Thread(target=storage_client.start_transaction,
+                                              args=(file_name,), daemon=True)
+        transaction_thread.start()
+
+
+def handle_transaction_start_response(package: Pckg.Package, _storage_client: StorageClient):
+    transaction_start_response = Pckg.FileTransactionStartResponsePackage.from_abstract(package)
+
+    if transaction_start_response.is_transaction_started():
+        sender_addr = transaction_start_response.get_sender_addr()
+
+        logging.info('Start transaction...')
+
+        receiver_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        receiver_socket.connect(sender_addr)
+
+        logging.info(f'[Transaction] Connected to {sender_addr}')
+
+        file_name = transaction_start_response.get_file_name()
+
+        receiving_folder = './p2p_download'
+
+        if not os.path.exists(receiving_folder):
+            os.mkdir(receiving_folder)
+
+        downloaded_file_path = os.path.join(receiving_folder, file_name)
+
+        logging.info(f'[Transaction] Downloading file to {downloaded_file_path}...')
+
+        while True:
+            with open(downloaded_file_path, 'wb') as file:
+                data = receiver_socket.recv(StreamConfiguration.FILE_CHUNKS_SIZE)
+
+                if not data:
+                    break
+
+                file.write(data)
+
+        logging.info(f'[Transaction] File downloaded!')
+        logging.info(f'[Transaction] Transaction is closing...')
+
+        receiver_socket.close()

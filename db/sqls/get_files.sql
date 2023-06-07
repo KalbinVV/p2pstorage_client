@@ -1,0 +1,1 @@
+select name, path, size, hash from files

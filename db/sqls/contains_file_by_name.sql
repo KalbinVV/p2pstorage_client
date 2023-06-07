@@ -1,0 +1,1 @@
+select exists (select 1 from files where name=?)
