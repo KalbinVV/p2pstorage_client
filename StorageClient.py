@@ -34,8 +34,6 @@ class StorageClient:
         logging.info(f'Try to connect to {self.__server_address}...')
 
         if self.try_connect():
-            logging.info(f'Successful connected to {self.__server_address}!')
-
             self.set_running(True)
             self.handle_connection()
         else:
@@ -56,6 +54,9 @@ class StorageClient:
             if not connect_response_package.is_connection_approved():
                 logging.warning(f'Eject reason: {connect_response_package.get_reason()}')
                 return False
+            else:
+                logging.info(f'Successful connected to {self.__server_address}!')
+                logging.info(connect_response_package.get_broadcast_message())
 
             return True
 
