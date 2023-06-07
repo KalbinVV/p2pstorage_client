@@ -1,6 +1,6 @@
 import logging
 from p2pstorage_core.server.Package import Package, PackageType, ConnectionLostPackage, HostsListResponsePackage, \
-    NewFileResponsePackage
+    NewFileResponsePackage, FilesListResponsePackage
 
 from StorageClient import StorageClient
 
@@ -13,6 +13,8 @@ def handle_package(package: Package, storage_client: StorageClient) -> None:
             handle_host_connect_response(package)
         case PackageType.NEW_FILE_RESPONSE:
             handle_new_file_response(package)
+        case PackageType.FILES_LIST_RESPONSE:
+            handle_files_list_response(package)
 
 
 def handle_connection_lost(package: Package, storage_client: StorageClient) -> None:
@@ -39,10 +41,22 @@ def handle_host_connect_response(package: Package):
         logging.error(f'Can\' get list of hosts: {hosts_list_response.get_reject_reason()}')
 
 
-def handle_new_file_response(package: Package):
-    new_file_response: NewFileResponsePackage = NewFileResponsePackage.from_abstract(package)
+def handle_new_file_response(package: Package) -> None:
+    new_file_response = NewFileResponsePackage.from_abstract(package)
 
     if new_file_response.is_file_approved():
         logging.info('File successful added!')
     else:
         logging.error(f'Can\'t add file: {new_file_response.get_reason()}')
+
+
+def handle_files_list_response(package: Package) -> None:
+    files_list_response = FilesListResponsePackage.from_abstract(package)
+
+    if files_list_response.is_response_approved():
+        logging.info('Files lists: ')
+
+        for file_info in files_list_response.get_files():
+            logging.info(file_info)
+    else:
+        logging.error(f'Can\'t get list of files: {files_list_response.get_reject_reason()}')

@@ -6,7 +6,8 @@ from typing import Callable
 from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
 from p2pstorage_core.server.Crypt import get_hash_of_file
 from p2pstorage_core.server.FileInfo import FileInfo
-from p2pstorage_core.server.Package import ConnectionLostPackage, NewFileRequestPackage, HostsListRequestPackage
+from p2pstorage_core.server.Package import ConnectionLostPackage, NewFileRequestPackage, HostsListRequestPackage, \
+    FilesListRequestPackage
 
 from StorageClient import StorageClient
 
@@ -43,6 +44,7 @@ def init_commands() -> None:
     register_command('send_file', handle_send_file_command)
 
     register_command('hosts', handle_hosts_list_command)
+    register_command('files', handle_files_list_command)
 
 
 def handle_connect_command(client: StorageClient, args: list[str]) -> None:
@@ -97,3 +99,13 @@ def handle_hosts_list_command(client: StorageClient, _args: list[str]) -> None:
 
     hosts_list_request = HostsListRequestPackage()
     hosts_list_request.send(host_socket)
+
+
+def handle_files_list_command(client: StorageClient, _args: list[str]) -> None:
+    if not client.is_connection_active():
+        raise InvalidArgsCommandException('You should be connected to server!')
+
+    host_socket = client.get_socket()
+
+    files_list_request = FilesListRequestPackage()
+    files_list_request.send(host_socket)
