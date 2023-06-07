@@ -70,6 +70,9 @@ def handle_connection_lost_command(client: StorageClient, _args: list[str]) -> N
 
 
 def handle_send_file_command(client: StorageClient, args: list[str]) -> None:
+    if not client.is_connection_active():
+        raise InvalidArgsCommandException('You should be connected to server!')
+
     if len(args) < 1:
         raise InvalidArgsCommandException
 
