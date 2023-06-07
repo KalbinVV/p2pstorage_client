@@ -84,8 +84,10 @@ def handle_send_file_command(client: StorageClient, args: list[str]) -> None:
         raise InvalidArgsCommandException('Invalid file path')
 
     file_size = os.stat(file_path).st_size
-    file_name = os.path.basename(file_path)
     file_hash = get_hash_of_file(file_path)
+    file_name = os.path.basename(file_path)
+
+    # file_path = os.path.abspath(file_path)
 
     new_file_package = NewFileRequestPackage(FileInfo(file_name, file_size, file_hash))
     new_file_package.send(client.get_socket())
