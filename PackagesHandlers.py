@@ -15,8 +15,8 @@ def handle_package(package: Package, storage_client: StorageClient) -> None:
 def handle_connection_lost(package: Package, storage_client: StorageClient) -> None:
     connection_lost_package = ConnectionLostPackage.from_abstract(package)
 
-    logging.info(f'Lost connection from server {storage_client.get_server_address()}: '
-                 f'{connection_lost_package.get_reason()}')
+    logging.warning(f'Lost connection from server {storage_client.get_server_address()}: '
+                    f'{connection_lost_package.get_reason()}')
 
     storage_client.set_connection_active(False)
 
