@@ -12,21 +12,21 @@ class StorageClient:
 
         self.__address = None
 
-        self.__running = False
+        self.__connection_active = False
 
         self.__server_address = None
 
-    def get_server_address(self):
+    def get_server_address(self) -> SocketAddress:
         return self.__server_address
 
-    def get_socket(self):
+    def get_socket(self) -> socket.socket:
         return self.__client_socket
 
-    def is_running(self) -> bool:
-        return self.__running
+    def is_connection_active(self) -> bool:
+        return self.__connection_active
 
-    def set_running(self, running: bool) -> None:
-        self.__running = running
+    def set_connection_active(self, running: bool) -> None:
+        self.__connection_active = running
 
     def run(self, server_address: SocketAddress):
         self.__server_address = server_address
@@ -34,7 +34,7 @@ class StorageClient:
         logging.info(f'Try to connect to {self.__server_address}...')
 
         if self.try_connect():
-            self.set_running(True)
+            self.set_connection_active(True)
             self.handle_connection()
         else:
             logging.warning(f'Can\'t connect to {self.__server_address}!')
@@ -64,13 +64,13 @@ class StorageClient:
             return False
 
     def handle_connection(self):
-        while self.is_running():
+        while self.is_connection_active():
             try:
                 package = Package.recv(self.__client_socket)
             except EmptyHeaderException:
                 logging.warning('Lost connection from server!')
 
-                self.set_running(False)
+                self.set_connection_active(False)
                 break
 
             logging.debug(f'Package from server: {package}')

@@ -18,7 +18,7 @@ def handle_connection_lost(package: Package, storage_client: StorageClient) -> N
     logging.info(f'Lost connection from server {storage_client.get_server_address()}: '
                  f'{connection_lost_package.get_reason()}')
 
-    storage_client.set_running(False)
+    storage_client.set_connection_active(False)
 
 
 def handle_host_connect_response(package: Package):

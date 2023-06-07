@@ -59,7 +59,7 @@ def handle_connect_command(client: StorageClient, args: list[str]) -> None:
 
 
 def handle_connection_lost_command(client: StorageClient, _args: list[str]) -> None:
-    if client.is_running():
+    if client.is_connection_active():
         connection_lost_package = ConnectionLostPackage()
 
         connection_lost_package.send(client.get_socket())
@@ -87,6 +87,9 @@ def handle_send_file_command(client: StorageClient, args: list[str]) -> None:
 
 
 def handle_hosts_list_command(client: StorageClient, _args: list[str]) -> None:
+    if not client.is_connection_active():
+        raise InvalidArgsCommandException('You should be connected to server!')
+
     host_socket = client.get_socket()
 
     hosts_list_request = HostsListRequestPackage()

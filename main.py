@@ -1,6 +1,6 @@
 import logging
 
-from CommandsHandlers import init_commands, handle_command
+from CommandsHandlers import init_commands, handle_command, InvalidArgsCommandException, InvalidCommandException
 from StorageClient import StorageClient
 
 
@@ -37,17 +37,26 @@ def user_input_handler(storage_client: StorageClient) -> None:
     running = True
 
     while running:
-        user_input = input()
+        try:
+            user_input = input()
 
-        command_parts = user_input.split()
+            command_parts = user_input.split()
 
-        command_name = command_parts[0]
-        args = command_parts[1:]
+            command_name = command_parts[0]
+            args = command_parts[1:]
 
-        handle_command(storage_client, command_name, args)
+            try:
+                handle_command(storage_client, command_name, args)
+            except (InvalidArgsCommandException, InvalidCommandException) as e:
+                logging.error(e)
 
-        if command_name == 'q':
+            if command_name == 'q':
+                running = False
+        except KeyboardInterrupt:
             running = False
+
+            storage_client.set_connection_active(False)
+            storage_client.get_socket().close()
 
 
 if __name__ == '__main__':
