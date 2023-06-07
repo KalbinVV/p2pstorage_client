@@ -133,7 +133,7 @@ def handle_transaction_start_response(package: Pckg.Package, _storage_client: St
         logging.info(f'[Transaction] Downloading file to {downloaded_file_path}...')
 
         while True:
-            with open(downloaded_file_path, 'wb') as file:
+            with open(downloaded_file_path, 'ab') as file:
                 data = receiver_socket.recv(StreamConfiguration.FILE_CHUNKS_SIZE)
 
                 logging.info(f'Files bytes: {data}')
