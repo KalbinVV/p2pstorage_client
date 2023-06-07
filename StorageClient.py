@@ -118,11 +118,9 @@ class StorageClient:
 
             logging.info(f'[Transaction] Sending file {file_name}...')
 
-            with open(file_path, 'wb') as file:
+            with open(file_path, 'rb') as file:
                 while True:
                     files_bytes = file.read(StreamConfiguration.FILE_CHUNKS_SIZE)
-
-                    logging.info(f'[Transaction] files bytes: {files_bytes}')
 
                     if not files_bytes:
                         break

@@ -136,6 +136,8 @@ def handle_transaction_start_response(package: Pckg.Package, _storage_client: St
             with open(downloaded_file_path, 'wb') as file:
                 data = receiver_socket.recv(StreamConfiguration.FILE_CHUNKS_SIZE)
 
+                logging.info(f'Files bytes: {data}')
+
                 if not data:
                     break
 
@@ -145,3 +147,5 @@ def handle_transaction_start_response(package: Pckg.Package, _storage_client: St
         logging.info(f'[Transaction] Transaction is closing...')
 
         receiver_socket.close()
+    elif not transaction_start_response.is_transaction_started():
+        logging.info(f'[Transaction] Can\'t create a transaction: {transaction_start_response.get_reject_reason()}')
