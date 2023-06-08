@@ -95,18 +95,22 @@ class StorageClient:
             from PackagesHandlers import handle_package
             handle_package(package, self)
 
-    def start_transaction(self, file_name: str) -> None:
+    def start_transaction(self, file_name: str, establish_addr: SocketAddress) -> None:
         transaction_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         file_path = self.get_files_manager().get_file_path_by_name(file_name)
 
         try:
-            addr = socket.gethostbyname(socket.gethostname())
+            logging.info('[Transaction] Trying to establish...')
+
+            addr = establish_addr.host
             port = random.randint(1000, 40000)
             transaction_addr = SocketAddress(addr, port)
 
             transaction_server_socket.bind(transaction_addr)
             transaction_server_socket.listen()
+
+            logging.info('[Transaction] Transaction created!')
 
             transaction_started_packet = Pckg.FileTransactionStartResponsePackage(transaction_addr,
                                                                                   file_name=file_name)
@@ -133,4 +137,5 @@ class StorageClient:
             transaction_server_socket.close()
 
         except OSError:
-            self.start_transaction(file_name)
+            logging.warning(f'[Transaction] Can\'t start transaction! Reloading...')
+            self.start_transaction(file_name, establish_addr)

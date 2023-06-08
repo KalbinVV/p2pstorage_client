@@ -101,10 +101,12 @@ def handle_transaction_start_request(package: Pckg.Package, storage_client: Stor
                                                                               reject_reason='File not exists!')
         transaction_start_response.send(storage_client.get_socket())
     else:
+        establish_addr = transaction_start_request.get_establish_addr()
+
         logging.info(f'Transaction started: {file_name}')
 
         transaction_thread = threading.Thread(target=storage_client.start_transaction,
-                                              args=(file_name,), daemon=True)
+                                              args=(file_name, establish_addr), daemon=True)
         transaction_thread.start()
 
 
@@ -135,8 +137,6 @@ def handle_transaction_start_response(package: Pckg.Package, _storage_client: St
         while True:
             with open(downloaded_file_path, 'ab') as file:
                 data = receiver_socket.recv(StreamConfiguration.FILE_CHUNKS_SIZE)
-
-                logging.info(f'Files bytes: {data}')
 
                 if not data:
                     break
