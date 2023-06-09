@@ -57,7 +57,7 @@ def handle_new_file_response(package: Pckg.Package) -> None:
     new_file_response = Pckg.NewFileResponsePackage.from_abstract(package)
 
     if new_file_response.is_file_approved():
-        logging.info('File successful added!')
+        logging.info(f'File successful added: {new_file_response.get_file_name()}')
     else:
         logging.error(f'Can\'t add file: {new_file_response.get_reason()}')
 
