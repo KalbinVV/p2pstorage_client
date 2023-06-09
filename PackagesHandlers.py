@@ -112,7 +112,7 @@ def handle_transaction_start_request(package: Pckg.Package, storage_client: Stor
         transaction_thread.start()
 
 
-def handle_transaction_start_response(package: Pckg.Package, _storage_client: StorageClient):
+def handle_transaction_start_response(package: Pckg.Package, storage_client: StorageClient):
     transaction_start_response = Pckg.FileTransactionStartResponsePackage.from_abstract(package)
 
     if transaction_start_response.is_transaction_started():
@@ -149,6 +149,10 @@ def handle_transaction_start_response(package: Pckg.Package, _storage_client: St
         logging.info(f'[Transaction] Transaction is closing...')
 
         receiver_socket.close()
+
+        transaction_finished_package = Pckg.FileTransactionFinishedPackage(sender_addr)
+        transaction_finished_package.send(storage_client.get_socket())
+
     elif not transaction_start_response.is_transaction_started():
         logging.info(f'[Transaction] Can\'t create a transaction: {transaction_start_response.get_reject_reason()}')
 
