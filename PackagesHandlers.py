@@ -25,6 +25,8 @@ def handle_package(package: Pckg.Package, storage_client: StorageClient) -> None
             handle_transaction_start_request(package, storage_client)
         case Pckg.PackageType.FILE_TRANSACTION_START_RESPONSE:
             handle_transaction_start_response(package, storage_client)
+        case Pckg.PackageType.NEW_HOST_CONNECTED:
+            handle_new_host_connected(package)
 
 
 def handle_connection_lost(package: Pckg.Package, storage_client: StorageClient) -> None:
@@ -149,3 +151,12 @@ def handle_transaction_start_response(package: Pckg.Package, _storage_client: St
         receiver_socket.close()
     elif not transaction_start_response.is_transaction_started():
         logging.info(f'[Transaction] Can\'t create a transaction: {transaction_start_response.get_reject_reason()}')
+
+
+def handle_new_host_connected(package: Pckg.Package) -> None:
+    new_host_connected_package = Pckg.NewHostConnectedPackage.from_abstract(package)
+
+    host_addr = new_host_connected_package.get_host_addr()
+    host_name = new_host_connected_package.get_host_name()
+
+    logging.info(f'[New host] {host_addr} ({host_name}) connected!')
