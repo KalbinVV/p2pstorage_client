@@ -55,8 +55,9 @@ def user_input_handler(storage_client: StorageClient) -> None:
         except KeyboardInterrupt:
             running = False
 
-            storage_client.set_connection_active(False)
-            storage_client.get_socket().close()
+            if storage_client.is_connection_active():
+                storage_client.set_connection_active(False)
+                storage_client.get_socket().close()
 
 
 if __name__ == '__main__':

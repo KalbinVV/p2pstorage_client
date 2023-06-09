@@ -38,6 +38,7 @@ def register_command(command_name, method: Callable[[StorageClient, list[str]], 
 
 def init_commands() -> None:
     register_command('connect', handle_connect_command)
+    register_command('reconnect', handle_reconnect_command)
 
     register_command('q', handle_connection_lost_command)
     register_command('disconnect', handle_connection_lost_command)
@@ -131,3 +132,14 @@ def handle_download_by_id_command(client: StorageClient, args: list[str]) -> Non
     get_file_by_id_request = Pckg.GetFileByIdRequestPackage(file_id)
 
     get_file_by_id_request.send(client.get_socket())
+
+
+def handle_reconnect_command(client: StorageClient, _args: list[str]) -> None:
+    if client.is_connection_active():
+        raise InvalidArgsCommandException('You already connected!')
+
+    if client.get_server_address() is None:
+        raise InvalidArgsCommandException('You should firstly connect one time to use this command!')
+
+    connection_thread = threading.Thread(target=client.run, args=(client.get_server_address(),), daemon=True)
+    connection_thread.start()
