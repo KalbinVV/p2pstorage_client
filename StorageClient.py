@@ -95,10 +95,13 @@ class StorageClient:
             from PackagesHandlers import handle_package
             handle_package(package, self)
 
-    def start_transaction(self, file_name: str, establish_addr: SocketAddress) -> None:
+    def start_transaction(self, file_name: str, establish_addr: SocketAddress, receiver_addr: SocketAddress) -> None:
         transaction_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         file_path = self.get_files_manager().get_file_path_by_name(file_name)
+
+        # Trick to convert from tuple
+        establish_addr = SocketAddress(*establish_addr)
 
         try:
             logging.info('[Transaction] Trying to establish...')
@@ -112,7 +115,8 @@ class StorageClient:
 
             logging.info('[Transaction] Transaction created!')
 
-            transaction_started_packet = Pckg.FileTransactionStartResponsePackage(transaction_addr,
+            transaction_started_packet = Pckg.FileTransactionStartResponsePackage(sender_addr=transaction_addr,
+                                                                                  receiver_addr=receiver_addr,
                                                                                   file_name=file_name)
             transaction_started_packet.send(self.get_socket())
 
