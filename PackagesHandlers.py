@@ -100,7 +100,8 @@ def handle_transaction_start_request(package: Pckg.Package, storage_client: Stor
         transaction_start_response = Pckg.FileTransactionStartResponsePackage(sender_addr=None,
                                                                               file_name='',
                                                                               transaction_started=False,
-                                                                              reject_reason='File not exists!')
+                                                                              reject_reason='File not exists!',
+                                                                              receiver_addr=None)
         transaction_start_response.send(storage_client.get_socket())
     else:
         establish_addr = transaction_start_request.get_establish_addr()
