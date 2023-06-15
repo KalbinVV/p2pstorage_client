@@ -167,7 +167,7 @@ def handle_transaction_start_response(package: Pckg.Package, storage_client: Sto
 
         receiver_socket.close()
 
-        transaction_finished_package = Pckg.FileTransactionFinishedPackage(sender_addr)
+        transaction_finished_package = Pckg.FileTransactionFinishedPackage(sender_addr, file_name)
         transaction_finished_package.send(storage_client.get_socket())
 
     elif not transaction_start_response.is_transaction_started():
