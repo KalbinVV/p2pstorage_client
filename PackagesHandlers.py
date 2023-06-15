@@ -102,6 +102,7 @@ def handle_transaction_start_request(package: Pckg.Package, storage_client: Stor
     file_name = transaction_start_request.get_file_name()
     files_manager = storage_client.get_files_manager()
 
+    # TODO: Refactor this
     if not files_manager.is_contains_file(file_name):
         transaction_start_response = Pckg.FileTransactionStartResponsePackage(sender_addr=None,
                                                                               file_name='',
@@ -110,6 +111,17 @@ def handle_transaction_start_request(package: Pckg.Package, storage_client: Stor
                                                                               receiver_addr=None)
         transaction_start_response.send(storage_client.get_socket())
     else:
+        file_path = files_manager.get_file_path_by_name(file_name)
+
+        if not os.path.exists(file_path):
+            transaction_start_response = Pckg.FileTransactionStartResponsePackage(sender_addr=None,
+                                                                                  file_name='',
+                                                                                  transaction_started=False,
+                                                                                  reject_reason='File not exists!',
+                                                                                  receiver_addr=None)
+            transaction_start_response.send(storage_client.get_socket())
+            return
+
         establish_addr = transaction_start_request.get_establish_addr()
         receiver_addr = transaction_start_request.get_receiver_addr()
 
