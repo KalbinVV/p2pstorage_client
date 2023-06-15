@@ -123,8 +123,14 @@ def handle_transaction_start_request(package: Pckg.Package, storage_client: Stor
 def handle_transaction_start_response(package: Pckg.Package, storage_client: StorageClient):
     transaction_start_response = Pckg.FileTransactionStartResponsePackage.from_abstract(package)
 
+    transactions_manager = storage_client.get_transactions_manager()
+
     if transaction_start_response.is_transaction_started():
         sender_addr = transaction_start_response.get_sender_addr()
+        file_name = transaction_start_response.get_file_name()
+
+        if transactions_manager.is_transaction_already_created(file_name):
+            return
 
         logging.info('Start transaction...')
 
@@ -133,7 +139,7 @@ def handle_transaction_start_response(package: Pckg.Package, storage_client: Sto
 
         logging.info(f'[Transaction] Connected to {sender_addr}')
 
-        file_name = transaction_start_response.get_file_name()
+        transactions_manager.add_transaction(file_name)
 
         receiving_folder = './p2p_download'
 
@@ -155,6 +161,8 @@ def handle_transaction_start_response(package: Pckg.Package, storage_client: Sto
 
         logging.info(f'[Transaction] File downloaded!')
         logging.info(f'[Transaction] Transaction is closing...')
+
+        transactions_manager.remove_transaction(file_name)
 
         files_manager = storage_client.get_files_manager()
 

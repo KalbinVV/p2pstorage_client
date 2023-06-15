@@ -1,6 +1,7 @@
 import logging
 import random
 import socket
+from threading import Timer
 
 from p2pstorage_core.helper_classes.SocketAddress import SocketAddress
 from p2pstorage_core.server import StreamConfiguration
@@ -8,6 +9,7 @@ from p2pstorage_core.server.Exceptions import EmptyHeaderException
 import p2pstorage_core.server.Package as Pckg
 
 from db.FilesManager import FilesManager
+from db.Transaction import TransactionsManager
 
 
 class StorageClient:
@@ -23,12 +25,17 @@ class StorageClient:
         self.__files_manager: FilesManager | None = None
         self.init_files_manager()
 
+        self.__transactions_manager = TransactionsManager()
+
     def init_files_manager(self):
         self.__files_manager = FilesManager()
         self.__files_manager.init_table()
 
     def get_files_manager(self) -> FilesManager:
         return self.__files_manager
+
+    def get_transactions_manager(self) -> TransactionsManager:
+        return self.__transactions_manager
 
     def get_server_address(self) -> SocketAddress:
         return self.__server_address
@@ -103,6 +110,12 @@ class StorageClient:
         # Trick to convert from tuple
         establish_addr = SocketAddress(*establish_addr)
 
+        # Anonymous functions for close transactions after timeout
+        def close_transaction(transaction_socket: socket.socket) -> None:
+            transaction_socket.close()
+
+            logging.info(f'[Transaction] Nobody was connected, closing transaction...')
+
         try:
             logging.info('[Transaction] Trying to establish...')
 
@@ -120,9 +133,15 @@ class StorageClient:
                                                                                   file_name=file_name)
             transaction_started_packet.send(self.get_socket())
 
+            # Close transaction if nobody connected after 3 second
+            transaction_close_timeout = Timer(3, close_transaction, args=(transaction_server_socket,))
+            transaction_close_timeout.start()
+
             receiver_socket, receiver_addr = transaction_server_socket.accept()
 
             logging.info(f'[Transaction] Connected host: {receiver_addr}')
+
+            transaction_close_timeout.cancel()
 
             logging.info(f'[Transaction] Sending file {file_name}...')
 
@@ -143,4 +162,3 @@ class StorageClient:
         except OSError:
             logging.warning(f'[Transaction] Can\'t start transaction! Reloading...')
             self.start_transaction(file_name, establish_addr, receiver_addr)
-
