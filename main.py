@@ -57,6 +57,10 @@ def user_input_handler(storage_client: StorageClient) -> None:
                 if command_name == 'q':
                     running = False
             else:
+                if not storage_client.is_connection_active():
+                    logging.error('You should first be connected!')
+                    continue
+
                 message_package = MessagePackage(user_input, storage_client.get_socket().getpeername())
                 message_package.send(storage_client.get_socket())
 
