@@ -142,5 +142,5 @@ class StorageClient:
 
         except OSError:
             logging.warning(f'[Transaction] Can\'t start transaction! Reloading...')
-            self.start_transaction(file_name, establish_addr)
+            self.start_transaction(file_name, establish_addr, receiver_addr)
 
