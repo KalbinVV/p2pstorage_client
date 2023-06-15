@@ -50,6 +50,8 @@ def init_commands() -> None:
 
     register_command('download_by_id', handle_download_by_id_command)
 
+    register_command('get_file_owners_by_id', handle_get_file_owners_by_id_command)
+
 
 def handle_connect_command(client: StorageClient, args: list[str]) -> None:
     try:
@@ -133,6 +135,8 @@ def handle_download_by_id_command(client: StorageClient, args: list[str]) -> Non
 
     get_file_by_id_request.send(client.get_socket())
 
+    logging.info(f'Waiting for host...')
+
 
 def handle_reconnect_command(client: StorageClient, _args: list[str]) -> None:
     if client.is_connection_active():
@@ -143,3 +147,17 @@ def handle_reconnect_command(client: StorageClient, _args: list[str]) -> None:
 
     connection_thread = threading.Thread(target=client.run, args=(client.get_server_address(),), daemon=True)
     connection_thread.start()
+
+
+def handle_get_file_owners_by_id_command(client: StorageClient, args: list[str]) -> None:
+    if not client.is_connection_active():
+        raise InvalidArgsCommandException('You should already be connected!')
+
+    if len(args) < 1:
+        raise InvalidArgsCommandException('You should enter valid id!')
+
+    file_id = int(args[0])
+
+    get_file_owners_by_id_request = Pckg.GetFileOwnersByIdRequestPackage(file_id)
+    get_file_owners_by_id_request.send(client.get_socket())
+

@@ -9,6 +9,7 @@ from p2pstorage_core.server import StreamConfiguration
 from StorageClient import StorageClient
 
 
+# TODO: Refactor this
 def handle_package(package: Pckg.Package, storage_client: StorageClient) -> None:
     match package.get_type():
         case Pckg.PackageType.CONNECTION_LOST:
@@ -27,6 +28,8 @@ def handle_package(package: Pckg.Package, storage_client: StorageClient) -> None
             handle_transaction_start_response(package, storage_client)
         case Pckg.PackageType.NEW_HOST_CONNECTED:
             handle_new_host_connected(package)
+        case Pckg.PackageType.FILE_OWNERS_RESPONSE:
+            handle_file_owners_response(package)
 
 
 def handle_connection_lost(package: Pckg.Package, storage_client: StorageClient) -> None:
@@ -166,3 +169,13 @@ def handle_new_host_connected(package: Pckg.Package) -> None:
     host_name = new_host_connected_package.get_host_name()
 
     logging.info(f'[New host] {host_addr} ({host_name}) connected!')
+
+
+def handle_file_owners_response(package: Pckg.Package) -> None:
+    file_owners_response = Pckg.FileOwnersResponsePackage.from_abstract(package)
+
+    if not file_owners_response.is_response_approved():
+        logging.info(f'Can\'t get list of owners: {file_owners_response.get_reject_reason()}')
+        return
+
+    logging.info(f'File owners: {file_owners_response.get_owners()}')
