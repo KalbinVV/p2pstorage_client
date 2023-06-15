@@ -195,10 +195,6 @@ def handle_file_owners_response(package: Pckg.Package) -> None:
 
 
 def handle_message_package(package: Pckg.Package, client: StorageClient) -> None:
-    if not client.is_connection_active():
-        logging.error('You should be connected to server first!')
-        return
-
     message_package = Pckg.MessagePackage.from_abstract(package)
 
     from_addr = message_package.get_from()
