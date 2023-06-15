@@ -5,6 +5,7 @@ import threading
 
 import p2pstorage_core.server.Package as Pckg
 from p2pstorage_core.server import StreamConfiguration
+from p2pstorage_core.server.Crypt import get_hash_of_file
 
 from StorageClient import StorageClient
 
@@ -154,6 +155,15 @@ def handle_transaction_start_response(package: Pckg.Package, storage_client: Sto
 
         logging.info(f'[Transaction] File downloaded!')
         logging.info(f'[Transaction] Transaction is closing...')
+
+        files_manager = storage_client.get_files_manager()
+
+        file_size = os.stat(downloaded_file_path).st_size
+        file_hash = get_hash_of_file(downloaded_file_path)
+        file_name = os.path.basename(downloaded_file_path)
+        file_path = os.path.abspath(downloaded_file_path)
+
+        files_manager.add_file(file_name, file_path, file_size, file_hash)
 
         receiver_socket.close()
 
