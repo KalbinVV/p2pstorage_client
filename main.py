@@ -1,5 +1,7 @@
 import logging
 
+from p2pstorage_core.server.Package import MessagePackage
+
 from CommandsHandlers import init_commands, handle_command, InvalidArgsCommandException, InvalidCommandException
 from StorageClient import StorageClient
 
@@ -40,18 +42,24 @@ def user_input_handler(storage_client: StorageClient) -> None:
         try:
             user_input = input()
 
-            command_parts = user_input.split()
+            if user_input.startswith('/'):
 
-            command_name = command_parts[0]
-            args = command_parts[1:]
+                command_parts = user_input[1:].split()
 
-            try:
-                handle_command(storage_client, command_name, args)
-            except (InvalidArgsCommandException, InvalidCommandException) as e:
-                logging.error(e)
+                command_name = command_parts[0]
+                args = command_parts[1:]
 
-            if command_name == 'q':
-                running = False
+                try:
+                    handle_command(storage_client, command_name, args)
+                except (InvalidArgsCommandException, InvalidCommandException) as e:
+                    logging.error(e)
+
+                if command_name == 'q':
+                    running = False
+            else:
+                message_package = MessagePackage(user_input, storage_client.get_socket().getpeername())
+                message_package.send(storage_client.get_socket())
+
         except KeyboardInterrupt:
             running = False
 
